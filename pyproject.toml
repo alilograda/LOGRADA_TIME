@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lograda-time"
+version = "0.1.0"
+description = "LOGRADA_TIME Cybersecurity Toolkit"
+requires-python = ">=3.11"
+dependencies = [
+    "typer",
+    "rich",
+    "httpx"
+]
+
+[project.scripts]
+lograda_time = "main:app"
+
+[tool.setuptools]
+py-modules = ["main"]
