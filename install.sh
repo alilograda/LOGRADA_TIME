@@ -1,47 +1,44 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
+
+REPO="https://github.com/alilograda/LOGRADA_TIME.git"
+DIR="$HOME/.local/opt/LOGRADA_TIME"
+BIN="$HOME/.local/bin"
 
 echo "[+] Installing LOGRADA_TIME..."
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "Python 3 is required."
+command -v python3 >/dev/null || {
+    echo "Error: Python 3 is required."
     exit 1
-fi
+}
 
-if ! command -v git >/dev/null 2>&1; then
-    echo "Please install git first: sudo apt install git"
+command -v git >/dev/null || {
+    echo "Error: Git is required. Install it with: sudo apt install git"
     exit 1
-fi
+}
 
-if ! command -v nmap >/dev/null 2>&1; then
-    echo "Installing Nmap..."
-    sudo apt update
-    sudo apt install -y nmap
-fi
+mkdir -p "$HOME/.local/opt" "$BIN"
 
-INSTALL_DIR="$HOME/.local/opt/LOGRADA_TIME"
-mkdir -p "$HOME/.local/bin"
-
-if [ -d "$INSTALL_DIR" ]; then
-    echo "Installation directory already exists: $INSTALL_DIR"
-    echo "Update it separately rather than overwriting it."
+if [ -d "$DIR/.git" ]; then
+    git -C "$DIR" pull --ff-only
+elif [ -e "$DIR" ]; then
+    echo "Error: $DIR exists but is not a Git repository."
+    echo "Move or rename that directory before installing."
     exit 1
+else
+    git clone "$REPO" "$DIR"
 fi
 
-mkdir -p "$INSTALL_DIR"
-cp -r . "$INSTALL_DIR/"
-cd "$INSTALL_DIR"
+python3 -m venv "$DIR/.venv"
+"$DIR/.venv/bin/python" -m pip install "$DIR"
 
-python3 -m venv .venv
-"$INSTALL_DIR/.venv/bin/pip" install .
-
-cat > "$HOME/.local/bin/lograda_time" <<'LAUNCHER'
+cat > "$BIN/lograda_time" <<'LAUNCHER'
 #!/usr/bin/env bash
 exec "$HOME/.local/opt/LOGRADA_TIME/.venv/bin/lograda_time" "$@"
 LAUNCHER
 
-chmod +x "$HOME/.local/bin/lograda_time"
+chmod +x "$BIN/lograda_time"
 
 echo
-echo "[+] Installation complete!"
-echo "Run: ~/.local/bin/lograda_time status"
+echo "[+] Installation completed!"
+echo "Run: $BIN/lograda_time status"
